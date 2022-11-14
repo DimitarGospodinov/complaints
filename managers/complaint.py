@@ -29,6 +29,7 @@ class ComplaintManager:
         path = os.path.join(TEMP_FILE_FOLDER, name)
         decode_photo(path, encoded_photo)
         complaint_data["photo_url"] = s3.upload(path, name, extension)
+        os.remove(path)
         id_ = await database.execute(complaint.insert().values(complaint_data))
         return await database.fetch_one(complaint.select().where(complaint.c.id == id_))
     
