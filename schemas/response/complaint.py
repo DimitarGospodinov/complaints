@@ -5,4 +5,5 @@ from models import State
 class ComplaintOut(BaseComplaint):
     id: int
     created_at:datetime
+    photo_url: str
     status: State

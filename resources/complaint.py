@@ -15,9 +15,9 @@ async def get_complaints(request: Request):
 
 
 @router.post("/complaints/", dependencies=[Depends(oauth2_scheme), Depends(is_complainer)], response_model=ComplaintOut)
-async def create_complaint(request: Request, complaint: ComplaintIn):
+async def create_complaints(request: Request, complaint: ComplaintIn):
     user = request.state.user
-    return await ComplaintManager.create_complaint(complaint.dict(), user)
+    return await ComplaintManager.create(complaint.dict(), user)
 
 
 @router.delete("/complaints/{complaint_id}", dependencies=[Depends(oauth2_scheme), Depends(is_admin)],status_code=204)
