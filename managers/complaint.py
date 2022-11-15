@@ -4,10 +4,13 @@ import os
 from models import complaint, RoleType, State
 from db import database
 from services.s3 import S3Service
+from services.ses import SEService
 from constants import TEMP_FILE_FOLDER
 from utils.helpers import decode_photo
 
 s3 = S3Service()
+ses = SEService()
+
 
 class ComplaintManager:
     @staticmethod
@@ -18,8 +21,7 @@ class ComplaintManager:
         elif user["role"] == RoleType.approver:
             q = q.where(complaint.c.state == State.pending)
         return await database.fetch_all(q)
-    
-    
+
     @staticmethod
     async def create(complaint_data, user):
         complaint_data["complainer_id"] = user["id"]
@@ -32,15 +34,28 @@ class ComplaintManager:
         os.remove(path)
         id_ = await database.execute(complaint.insert().values(complaint_data))
         return await database.fetch_one(complaint.select().where(complaint.c.id == id_))
-    
+
     @staticmethod
     async def delete(complaint_id):
         await database.execute(complaint.delete().where(complaint.c.id == complaint_id))
 
     @staticmethod
     async def approve(id_):
-        await database.execute(complaint.update().where(complaint.c.id == id_).values(status=State.approved))
+        await database.execute(
+            complaint.update()
+            .where(complaint.c.id == id_)
+            .values(status=State.approved)
+        )
+        ses.send_mail(
+            "Complaint approved!",
+            ["mello@mail.bg",],
+            "Congrats! Your claim is approved. Check your bank account in 2 days for refund",
+        )
 
     @staticmethod
     async def reject(id_):
-        await database.execute(complaint.update().where(complaint.c.id == id_).values(status=State.rejected))
+        await database.execute(
+            complaint.update()
+            .where(complaint.c.id == id_)
+            .values(status=State.rejected)
+        )
