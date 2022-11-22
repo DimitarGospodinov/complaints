@@ -37,7 +37,7 @@ class ComplaintManager:
 
     @staticmethod
     async def delete(complaint_id):
-        await database.execute(complaint.delete().where(complaint.c.id == complaint_id))
+        await database.execute(complaint.delete().where(complaint.c.id == complaint_id)) 
 
     @staticmethod
     async def approve(id_):
